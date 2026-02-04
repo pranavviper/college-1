@@ -83,7 +83,7 @@ const StudentDashboard = () => {
         const fetchApplications = async () => {
             try {
                 const config = { headers: { Authorization: `Bearer ${user.token}` } };
-                const { data } = await axios.get('http://localhost:5001/api/applications', config);
+                const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/applications`, config);
                 setApplications(data);
             } catch (error) {
                 console.error(error);
@@ -103,10 +103,10 @@ const StudentDashboard = () => {
             };
 
             if (isEditing) {
-                await axios.put(`http://localhost:5001/api/applications/${editId}`, payload, config);
+                await axios.put(`${import.meta.env.VITE_API_URL}/api/applications/${editId}`, payload, config);
                 alert('Application Updated & Resubmitted!');
             } else {
-                await axios.post('http://localhost:5001/api/applications', payload, config);
+                await axios.post(`${import.meta.env.VITE_API_URL}/api/applications`, payload, config);
                 alert('Application Submitted!');
             }
 
@@ -138,8 +138,8 @@ const StudentDashboard = () => {
     const downloadPDF = async (id) => {
         try {
             const config = { headers: { Authorization: `Bearer ${user.token}` } };
-            const { data } = await axios.get(`http://localhost:5001/api/applications/${id}/pdf`, config);
-            window.open(`http://localhost:5001${data.pdfUrl}`, '_blank');
+            const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/applications/${id}/pdf`, config);
+            window.open(`${import.meta.env.VITE_API_URL}${data.pdfUrl}`, '_blank');
         } catch (error) {
             alert('Error generating PDF');
         }
