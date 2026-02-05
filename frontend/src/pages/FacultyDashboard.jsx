@@ -14,7 +14,7 @@ const FacultyDashboard = () => {
         try {
             const config = { headers: { Authorization: `Bearer ${user.token}` } };
             // Optional: add query params for filter
-            const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/applications?keyword=${filter}`, config);
+            const { data } = await axios.get(`${import.meta.env.VITE_API_URL || ''}/api/applications?keyword=${filter}`, config);
             setApplications(data);
         } catch (error) {
             console.error(error);
@@ -29,7 +29,7 @@ const FacultyDashboard = () => {
         // if (!window.confirm(`Are you sure you want to ${status} this application?`)) return;
         try {
             const config = { headers: { Authorization: `Bearer ${user.token}` } };
-            await axios.put(`${import.meta.env.VITE_API_URL}/api/applications/${id}/status`, { status }, config);
+            await axios.put(`${import.meta.env.VITE_API_URL || ''}/api/applications/${id}/status`, { status }, config);
             fetchApplications();
         } catch (error) {
             console.error(error);
