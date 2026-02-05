@@ -86,7 +86,7 @@ const ApplicationDetailsModal = ({ application, onClose, onStatusUpdate }) => {
                                             {course.proofFile && (
                                                 <div className="col-span-1 md:col-span-2 lg:col-span-3 mt-2">
                                                     <a
-                                                        href={`${import.meta.env.VITE_API_URL || ''}${course.proofFile}`}
+                                                        href={course.proofFile.startsWith('http') ? course.proofFile : `${import.meta.env.VITE_API_URL || ''}${course.proofFile}`}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
                                                         className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 text-sm font-medium"
@@ -137,7 +137,7 @@ const ApplicationDetailsModal = ({ application, onClose, onStatusUpdate }) => {
                                         {internship.proofFile && (
                                             <div className="col-span-1 md:col-span-2 lg:col-span-3 mt-2">
                                                 <a
-                                                    href={`${import.meta.env.VITE_API_URL || ''}${internship.proofFile}`}
+                                                    href={internship.proofFile.startsWith('http') ? internship.proofFile : `${import.meta.env.VITE_API_URL || ''}${internship.proofFile}`}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 text-sm font-medium"

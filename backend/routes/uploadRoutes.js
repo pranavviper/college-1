@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const path = require('path');
-const File = require('../models/File');
+// const File = require('../models/File');
 
 // Use memory storage to get buffer
 const storage = multer.memoryStorage();

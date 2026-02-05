@@ -139,7 +139,13 @@ const StudentDashboard = () => {
         try {
             const config = { headers: { Authorization: `Bearer ${user.token}` } };
             const { data } = await axios.get(`${import.meta.env.VITE_API_URL || ''}/api/applications/${id}/pdf`, config);
-            window.open(`${import.meta.env.VITE_API_URL || ''}${data.pdfUrl}`, '_blank');
+
+            const pdfUrl = data.pdfUrl;
+            if (pdfUrl.startsWith('http')) {
+                window.open(pdfUrl, '_blank');
+            } else {
+                window.open(`${import.meta.env.VITE_API_URL || ''}${pdfUrl}`, '_blank');
+            }
         } catch (error) {
             alert('Error generating PDF');
         }
