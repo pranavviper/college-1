@@ -2,15 +2,10 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const path = require('path');
+const File = require('../models/File');
 
-const storage = multer.diskStorage({
-    destination(req, file, cb) {
-        cb(null, 'backend/uploads/');
-    },
-    filename(req, file, cb) {
-        cb(null, `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`);
-    },
-});
+// Use memory storage to get buffer
+const storage = multer.memoryStorage();
 
 function checkFileType(file, cb) {
     const filetypes = /pdf/;
@@ -31,42 +26,49 @@ const upload = multer({
     },
 });
 
-// Since we are running from root, destination 'backend/uploads/' might need adjustment depending on CWD of node process.
-// But mostly relative path from where node is run.
-// Wait, if server.js is in backend/, and we run `node server.js` from backend/, then 'uploads/' is enough.
-// If we set destination to 'backend/uploads/' but run from backend/, it tries to find backend/backend/uploads/
-// Better to use absolute path or relative to __dirname.
+// @route   POST /api/upload
+// @desc    Upload file to MongoDB
+router.post('/', upload.single('file'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).send('No file uploaded');
+        }
 
-// Let's redefine storage with path.join
-const uploadDir = path.join(__dirname, '../uploads');
-// Ensure it exists?
-const fs = require('fs');
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir);
-}
+        const newFile = new File({
+            filename: `${req.file.fieldname}-${Date.now()}${path.extname(req.file.originalname)}`,
+            contentType: req.file.mimetype,
+            data: req.file.buffer
+        });
 
-const storageFixed = multer.diskStorage({
-    destination(req, file, cb) {
-        cb(null, uploadDir);
-    },
-    filename(req, file, cb) {
-        cb(null, `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`);
-    },
+        const savedFile = await newFile.save();
+
+        res.send({
+            message: 'File uploaded',
+            filePath: `/api/upload/file/${savedFile._id}`, // This URL will now point to our backend route
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Server Error during upload');
+    }
 });
 
-const uploadFixed = multer({
-    storage: storageFixed,
-    fileFilter: function (req, file, cb) {
-        checkFileType(file, cb);
-    },
-});
+// @route   GET /api/upload/file/:id
+// @desc    Serve file from MongoDB
+router.get('/file/:id', async (req, res) => {
+    try {
+        const file = await File.findById(req.params.id);
 
+        if (!file) {
+            return res.status(404).send('File not found');
+        }
 
-router.post('/', uploadFixed.single('file'), (req, res) => {
-    res.send({
-        message: 'File uploaded',
-        filePath: `/uploads/${req.file.filename}`,
-    });
+        res.set('Content-Type', file.contentType);
+        // Optional: ensure filename is safe
+        res.send(file.data);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Server Error');
+    }
 });
 
 module.exports = router;
