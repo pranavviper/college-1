@@ -21,6 +21,7 @@ function checkFileType(file, cb) {
 
 const upload = multer({
     storage,
+    limits: { fileSize: 4 * 1024 * 1024 }, // 4MB limit for Vercel Serverless
     fileFilter: function (req, file, cb) {
         checkFileType(file, cb);
     },
