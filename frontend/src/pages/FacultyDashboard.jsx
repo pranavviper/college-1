@@ -56,7 +56,7 @@ const FacultyDashboard = () => {
                 <table className="w-full text-left text-sm">
                     <thead className="bg-slate-50 border-b border-slate-200">
                         <tr>
-                            <th className="px-6 py-4 font-medium text-slate-500">Application ID</th>
+                            <th className="px-6 py-4 font-medium text-slate-500">Roll Number</th>
                             <th className="px-6 py-4 font-medium text-slate-500">Student</th>
                             <th className="px-6 py-4 font-medium text-slate-500">Department</th>
                             <th className="px-6 py-4 font-medium text-slate-500">Date</th>
@@ -70,7 +70,7 @@ const FacultyDashboard = () => {
                         ) : (
                             applications.map((app) => (
                                 <tr key={app._id} className="hover:bg-slate-50 transition-colors">
-                                    <td className="px-6 py-4 font-medium text-slate-900">#{app._id.slice(-6)}</td>
+                                    <td className="px-6 py-4 font-medium text-slate-900">{app.student?.registerNumber || 'N/A'}</td>
                                     <td className="px-6 py-4">
                                         <div>{app.student?.name}</div>
                                         <div className="text-xs text-slate-500">{app.student?.registerNumber}</div>

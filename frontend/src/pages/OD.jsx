@@ -8,6 +8,7 @@ const OD = () => {
     const [showForm, setShowForm] = useState(false);
     const [odRequests, setOdRequests] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [isUploading, setIsUploading] = useState(false);
 
     const [formData, setFormData] = useState({
         reason: 'Event',
@@ -53,16 +54,19 @@ const OD = () => {
         const formDataUpload = new FormData();
         formDataUpload.append('file', file);
 
+        setIsUploading(true);
         try {
             const config = { headers: { 'Content-Type': 'multipart/form-data' } };
             const { data } = await axios.post(`${import.meta.env.VITE_API_URL || ''}/api/upload`, formDataUpload, config);
-            setFormData({ ...formData, proofFile: data.filePath });
+            setFormData(prev => ({ ...prev, proofFile: data.filePath }));
             alert('Proof Uploaded Successfully!');
         } catch (error) {
 
             console.error(error);
             alert('File Upload Failed. Please check server connection.');
-            setFormData({ ...formData, proofFile: null });
+            setFormData(prev => ({ ...prev, proofFile: null }));
+        } finally {
+            setIsUploading(false);
         }
     }
 
@@ -178,11 +182,14 @@ const OD = () => {
                                         accept=".pdf,.jpg,.png"
                                     />
                                     {formData.proofFile && <span className="text-green-600 text-sm font-bold">Uploaded</span>}
+                                    {isUploading && <span className="text-blue-600 text-sm animate-pulse">Uploading...</span>}
                                 </div>
                             </div>
                         </div>
                         <div className="flex justify-end pt-2">
-                            <button type="submit" className="btn btn-primary px-8 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Submit Request</button>
+                            <button disabled={isUploading} type="submit" className="btn btn-primary px-8 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                                {isUploading ? 'Uploading...' : 'Submit Request'}
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -257,6 +264,17 @@ const OD = () => {
                                     >
                                         <X size={20} />
                                     </button>
+                                    {od.proofFile && (
+                                        <a
+                                            href={getFileUrl(od.proofFile)}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="btn bg-blue-50 text-blue-600 hover:bg-blue-100 p-2 rounded-lg"
+                                            title="View Proof"
+                                        >
+                                            <FileText size={20} />
+                                        </a>
+                                    )}
                                 </div>
                             )}
                         </div>
