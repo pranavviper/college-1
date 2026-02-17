@@ -3,11 +3,17 @@ const dotenv = require('dotenv');
 const cors = require('cors');
 const morgan = require('morgan');
 const path = require('path');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const connectDB = require('./config/db');
 
 dotenv.config();
 
-connectDB();
+console.log('Starting server...');
+console.log('MONGO_URI exists:', !!process.env.MONGO_URI);
+if (process.env.MONGO_URI) {
+    console.log('MONGO_URI starts with:', process.env.MONGO_URI.substring(0, 20) + '...');
+}
 
 const app = express();
 
@@ -17,6 +23,17 @@ app.use(cors({
     origin: ['http://localhost:5173', 'http://localhost:5174'],
     credentials: true
 }));
+
+// Security Middleware
+app.use(helmet());
+
+// Rate Limiting
+const limiter = rateLimit({
+    windowMs: 10 * 60 * 1000, // 10 minutes
+    max: 100
+});
+app.use(limiter);
+
 if (process.env.NODE_ENV === 'development') {
     app.use(morgan('dev'));
 }
@@ -48,8 +65,25 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 
-if (require.main === module) {
-    app.listen(PORT, console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`));
-}
+const ensureAdmin = require('./utils/ensureAdmin');
+
+// Connect to DB and start server
+(async () => {
+    try {
+        await connectDB();
+
+        // Ensure default admin exists
+        await ensureAdmin();
+
+        if (require.main === module) {
+            app.listen(PORT, () => {
+                console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+            });
+        }
+    } catch (err) {
+        console.error('Failed to connect to DB', err);
+        process.exit(1);
+    }
+})();
 
 module.exports = app;

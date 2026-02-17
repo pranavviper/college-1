@@ -7,6 +7,7 @@ const connectDB = async () => {
             return;
         }
 
+        console.log('Attempting to connect to MongoDB in db.js...');
         const conn = await mongoose.connect(process.env.MONGO_URI, {
             // Options to avoid deprecation warnings and ensure stability
             serverSelectionTimeoutMS: 5000,
