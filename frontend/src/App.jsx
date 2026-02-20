@@ -4,6 +4,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import StudentDashboard from './pages/StudentDashboard';
 import FacultyDashboard from './pages/FacultyDashboard';
+import CourseManagement from './pages/CourseManagement';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminStudentList from './pages/AdminStudentList';
 import AdminFacultyList from './pages/AdminFacultyList';
@@ -15,6 +16,9 @@ import CreditTransfer from './pages/CreditTransfer';
 import OD from './pages/OD';
 import Events from './pages/Events';
 import Achievements from './pages/Achievements';
+import ChangePassword from './pages/ChangePassword';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 
 function App() {
   return (
@@ -29,6 +33,13 @@ function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/passwordreset/:resetToken" element={<ResetPassword />} />
+                <Route path="/change-password" element={
+                  <ProtectedRoute>
+                    <ChangePassword />
+                  </ProtectedRoute>
+                } />
                 <Route path="/credit-transfer" element={
                   <ProtectedRoute>
                     <CreditTransfer />
@@ -59,6 +70,11 @@ function App() {
                 <Route path="/faculty" element={
                   <ProtectedRoute role="faculty">
                     <FacultyDashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/faculty/courses" element={
+                  <ProtectedRoute role="faculty">
+                    <CourseManagement />
                   </ProtectedRoute>
                 } />
 

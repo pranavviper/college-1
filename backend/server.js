@@ -19,6 +19,7 @@ const app = express();
 
 // Middleware
 app.use(express.json());
+
 app.use(cors({
     origin: ['http://localhost:5173', 'http://localhost:5174'],
     credentials: true
@@ -46,6 +47,7 @@ app.use('/api/od', require('./routes/odRoutes'));
 app.use('/api/events', require('./routes/eventRoutes'));
 app.use('/api/achievements', require('./routes/achievementRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
+app.use('/api/courses', require('./routes/courseRoutes'));
 
 app.use('/uploads', express.static(path.join(__dirname, '/uploads')));
 
@@ -63,7 +65,7 @@ app.use((err, req, res, next) => {
     });
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
 const ensureAdmin = require('./utils/ensureAdmin');
 

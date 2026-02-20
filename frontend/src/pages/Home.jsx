@@ -1,28 +1,12 @@
-import { useContext, useEffect } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import AuthContext from '../context/AuthContext';
+import axios from 'axios';
 import { User, BookOpen } from 'lucide-react';
 
 const Home = () => {
     const { user } = useContext(AuthContext);
-
-    // Mock Subject Data
-    const subjects = [
-        { code: 'CSBS301', name: 'Software Engineering', faculty: 'Dr. Smith', credits: 4 },
-        { code: 'CSBS302', name: 'Database Management Systems', faculty: 'Prof. Johnson', credits: 4 },
-        { code: 'CSBS303', name: 'Theory of Computation', faculty: 'Dr. Brown', credits: 3 },
-        { code: 'CSBS304', name: 'Artificial Intelligence', faculty: 'Prof. Davis', credits: 4 },
-        { code: 'CSBS305', name: 'Web Technologies', faculty: 'Ms. Wilson', credits: 3 },
-        { code: 'CSBS306', name: 'Professional Ethics', faculty: 'Dr. Taylor', credits: 2 },
-    ];
-
-    const facultySubjects = [
-        { code: 'CSBS102', name: 'Programming in C', year: 'I', credits: 4 },
-        { code: 'CSBS204', name: 'Data Structures', year: 'II', credits: 3 },
-        { code: 'CSBS302', name: 'Database Management Systems', year: 'III', credits: 4 },
-        { code: 'CSBS401', name: 'Advanced AI', year: 'IV', credits: 3 },
-    ];
-
+    const [courses, setCourses] = useState([]);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -30,6 +14,21 @@ const Home = () => {
             navigate('/admin');
         }
     }, [user, navigate]);
+
+    useEffect(() => {
+        const fetchCourses = async () => {
+            try {
+                const config = { headers: { Authorization: `Bearer ${user.token}` } };
+                const { data } = await axios.get(`${import.meta.env.VITE_API_URL || ''}/api/courses`, config);
+                setCourses(data);
+            } catch (error) {
+                console.error(error);
+            }
+        };
+        if (user) {
+            fetchCourses();
+        }
+    }, [user]);
 
     return (
         <div className="flex flex-col items-center">
@@ -94,7 +93,7 @@ const Home = () => {
                             </div>
                             <div className="flex items-end gap-2 z-10">
                                 <span className="text-5xl font-bold tracking-tight">
-                                    {user.role === 'faculty' ? facultySubjects.length : subjects.length}
+                                    {courses.length}
                                 </span>
                                 <span className="mb-2 opacity-80 font-medium">Active Subjects</span>
                             </div>
@@ -105,7 +104,7 @@ const Home = () => {
                     <div className="flex items-center gap-3 mb-6">
                         <div className="w-1 px-3 h-8 bg-primary rounded-full" />
                         <h2 className="text-xl font-bold text-slate-800">
-                            {user.role === 'faculty' ? 'Handled Subjects' : 'Enrolled Subjects'}
+                            Enrolled Subjects
                         </h2>
                     </div>
 
@@ -116,48 +115,37 @@ const Home = () => {
                                     <tr className="bg-slate-50/50 border-b border-slate-100 text-slate-500 uppercase text-xs font-bold tracking-wider">
                                         <th className="p-5 font-semibold">Code</th>
                                         <th className="p-5 font-semibold">Subject Name</th>
-                                        {user.role === 'faculty' ? (
-                                            <th className="p-5 font-semibold">Class / Year</th>
-                                        ) : (
-                                            <th className="p-5 font-semibold">Faculty</th>
-                                        )}
+                                        <th className="p-5 font-semibold">Department</th>
                                         <th className="p-5 font-semibold text-center">Credits</th>
-                                        <th className="p-5 font-semibold text-center">Status</th>
+                                        <th className="p-5 font-semibold text-center">Semester</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100">
-                                    {(user.role === 'faculty' ? facultySubjects : subjects).map((subject, index) => (
-                                        <tr key={index} className="hover:bg-slate-50/80 transition-colors group">
-                                            <td className="p-5 font-medium text-primary group-hover:text-accent transition-colors">{subject.code}</td>
-                                            <td className="p-5 text-slate-700 font-semibold">{subject.name}</td>
-                                            {user.role === 'faculty' ? (
-                                                <td className="p-5">
-                                                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${subject.year === 'I' ? 'bg-blue-50 text-blue-600 border-blue-100' :
-                                                        subject.year === 'II' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
-                                                            subject.year === 'III' ? 'bg-amber-50 text-amber-600 border-amber-100' :
-                                                                'bg-purple-50 text-purple-600 border-purple-100'
-                                                        }`}>
-                                                        Year {subject.year}
+                                    {courses.length === 0 ? (
+                                        <tr><td colSpan="5" className="p-8 text-center text-slate-500">No courses available.</td></tr>
+                                    ) : (
+                                        courses.map((course, index) => (
+                                            <tr key={index} className="hover:bg-slate-50/80 transition-colors group">
+                                                <td className="p-5 font-medium text-primary group-hover:text-accent transition-colors">{course.code}</td>
+                                                <td className="p-5 text-slate-700 font-semibold">{course.name}</td>
+                                                <td className="p-5 text-slate-600">
+                                                    <span className="px-2 py-1 bg-slate-100 rounded text-xs font-bold">
+                                                        {course.department}
                                                     </span>
                                                 </td>
-                                            ) : (
-                                                <td className="p-5 text-slate-600 flex items-center gap-2">
-                                                    <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-xs text-slate-500 font-bold">
-                                                        {subject.faculty.charAt(0)}
-                                                    </div>
-                                                    {subject.faculty}
+                                                <td className="p-5 text-center">
+                                                    <span className="bg-slate-100 text-slate-600 px-3 py-1 rounded-full text-xs font-bold">
+                                                        {course.credits}
+                                                    </span>
                                                 </td>
-                                            )}
-                                            <td className="p-5 text-center">
-                                                <span className="bg-slate-100 text-slate-600 px-3 py-1 rounded-full text-xs font-bold">
-                                                    {subject.credits}
-                                                </span>
-                                            </td>
-                                            <td className="p-5 text-center">
-                                                <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" title="Active"></span>
-                                            </td>
-                                        </tr>
-                                    ))}
+                                                <td className="p-5 text-center">
+                                                    <span className="bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-xs font-bold">
+                                                        Sem {course.semester}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
                                 </tbody>
                             </table>
                         </div>

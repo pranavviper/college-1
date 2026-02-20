@@ -1,7 +1,7 @@
 import { useState, useContext } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import AuthContext from '../context/AuthContext';
-import { LogOut, User, Menu, X, Home, FileText, Briefcase, LayoutDashboard, Calendar, Award } from 'lucide-react';
+import { LogOut, User, Menu, X, Home, FileText, Briefcase, LayoutDashboard, Calendar, Award, BookOpen } from 'lucide-react';
 
 const Navbar = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -85,6 +85,9 @@ const Navbar = () => {
                                         {user.role === 'faculty' ? 'Applications' : 'Dashboard'}
                                     </NavLink>
                                 )}
+                                {user.role === 'faculty' && (
+                                    <NavLink to="/faculty/courses" icon={BookOpen}>Add Course</NavLink>
+                                )}
 
                                 {user.role !== 'admin' && (
                                     <>
@@ -110,6 +113,9 @@ const Navbar = () => {
                                     <p className="text-xs text-slate-500 capitalize">{user.role}</p>
                                 </div>
                             </div>
+                            <Link to="/change-password" className="block w-full text-left px-2 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg mb-2 flex items-center gap-2 transition-colors">
+                                <div className="w-6 flex justify-center"><span className="text-lg">🔑</span></div> Change Password
+                            </Link>
                             <button
                                 onClick={handleLogout}
                                 className="w-full btn btn-secondary text-sm py-2 flex items-center justify-center gap-2 hover:bg-red-50 hover:text-red-500 hover:border-red-100 transition-colors"
@@ -177,6 +183,9 @@ const Navbar = () => {
                                         {user.role === 'faculty' ? 'Applications' : 'Dashboard'}
                                     </MobileNavLink>
                                 )}
+                                {user.role === 'faculty' && (
+                                    <MobileNavLink to="/faculty/courses" icon={BookOpen} onClick={() => setIsMenuOpen(false)}>Add Course</MobileNavLink>
+                                )}
                             </div>
 
                             {user.role !== 'admin' && (
@@ -197,6 +206,9 @@ const Navbar = () => {
                                         <p className="text-xs text-slate-500 capitalize">{user.role}</p>
                                     </div>
                                 </div>
+                                <Link to="/change-password" className="block w-full text-left p-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg mb-2 flex items-center gap-2 transition-colors">
+                                    <div className="w-6 flex justify-center"><span className="text-lg">🔑</span></div> Change Password
+                                </Link>
                                 <button
                                     onClick={handleLogout}
                                     className="w-full btn btn-secondary text-sm justify-center text-red-600 hover:bg-red-50 border-slate-200"

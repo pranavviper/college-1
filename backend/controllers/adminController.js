@@ -2,6 +2,7 @@ const asyncHandler = require('express-async-handler');
 const User = require('../models/User');
 const Application = require('../models/Application');
 const ODRequest = require('../models/ODRequest');
+const sendEmail = require('../utils/sendEmail');
 
 // @desc    Get system statistics
 // @route   GET /api/admin/stats
@@ -66,6 +67,34 @@ const createUser = asyncHandler(async (req, res) => {
             email: user.email,
             role: user.role
         });
+
+        // Send login credentials via email
+        try {
+            const message = `
+                Dear ${user.name},
+
+                Your account has been created on the College Portal.
+
+                Here are your login credentials:
+                Email: ${user.email}
+                Password: ${password}
+                Role: ${user.role}
+
+                Please login and change your password immediately.
+
+                Regards,
+                Admin Team
+            `;
+
+            await sendEmail({
+                email: user.email,
+                subject: 'Your College Portal Login Credentials',
+                message
+            });
+        } catch (error) {
+            console.error('Error sending welcome email:', error);
+            // We don't want to fail the request if email fails, but maybe log it
+        }
     } else {
         res.status(400);
         throw new Error('Invalid user data');

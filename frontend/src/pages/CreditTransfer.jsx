@@ -25,7 +25,50 @@ const CreditTransfer = () => {
         semester: '5',
         courses: [],
         internships: []
+
     });
+
+    const [eligibleCourses, setEligibleCourses] = useState([]);
+    const [isOtherCourse, setIsOtherCourse] = useState({}); // Track "Other" selection per course index
+
+    useEffect(() => {
+        const fetchCourses = async () => {
+            try {
+                const config = { headers: { Authorization: `Bearer ${user.token}` } };
+                const { data } = await axios.get(`${import.meta.env.VITE_API_URL || ''}/api/courses`, config);
+                const eligible = data.filter(c => c.isCreditTransferEligible);
+                setEligibleCourses(eligible);
+            } catch (error) {
+                console.error("Error fetching courses", error);
+            }
+        };
+        fetchCourses();
+    }, [user.token]);
+
+    const handleCourseSelection = (index, value) => {
+        const newCourses = [...formData.courses];
+
+        if (value === 'other') {
+            setIsOtherCourse({ ...isOtherCourse, [index]: true });
+            newCourses[index]['droppedElective'] = '';
+            newCourses[index]['droppedElectiveCode'] = '';
+            newCourses[index]['recSubjectCode'] = '';
+            newCourses[index]['courseType'] = ''; // Allow manual selection
+        } else {
+            const selected = eligibleCourses.find(c => c._id === value);
+            if (selected) {
+                setIsOtherCourse({ ...isOtherCourse, [index]: false });
+                newCourses[index]['droppedElective'] = selected.name; // Auto-fill Dropped Elective Name
+                newCourses[index]['droppedElectiveCode'] = selected.code; // Auto-fill Dropped Elective Code
+                newCourses[index]['recSubjectCode'] = selected.code; // Standard mapping
+                newCourses[index]['courseType'] = `${selected.credits} Credits`.endsWith('s') ? `${selected.credits} Credits` : `${selected.credits} Credit`;
+                newCourses[index]['semester'] = selected.semester;
+                // Keep courseName (Online Course Name) empty or preserve user input if they typed before selecting? 
+                // Requirement says "should be manual filled", so we don't overwrite it with selected.name
+            }
+        }
+        setFormData({ ...formData, courses: newCourses });
+    };
 
     useEffect(() => {
         if (user.role === 'admin') {
@@ -261,8 +304,8 @@ const CreditTransfer = () => {
                                             </td>
                                             <td className="p-4">
                                                 <span className={`px-2 py-1 rounded-full text-xs font-bold ${app.status === 'Approved' ? 'bg-green-100 text-green-700' :
-                                                        app.status === 'Rejected' ? 'bg-red-100 text-red-700' :
-                                                            'bg-yellow-100 text-yellow-700'
+                                                    app.status === 'Rejected' ? 'bg-red-100 text-red-700' :
+                                                        'bg-yellow-100 text-yellow-700'
                                                     }`}>
                                                     {app.status}
                                                 </span>
@@ -411,22 +454,46 @@ const CreditTransfer = () => {
                                     <h5 className="font-bold text-slate-700 mb-4 text-sm uppercase">Course #{index + 1}</h5>
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="md:col-span-2">
+                                            <label className="label-text">Select Professional Elective to be Dropped</label>
+                                            <select
+                                                className="input-field mb-2"
+                                                onChange={(e) => handleCourseSelection(index, e.target.value)}
+                                            >
+                                                <option value="">-- Select Eligible Course --</option>
+                                                {eligibleCourses.map(c => (
+                                                    <option key={c._id} value={c._id}>{c.name} ({c.code}) - {c.credits} Credits</option>
+                                                ))}
+                                                <option value="other">Other (Manual Entry)</option>
+                                            </select>
+                                        </div>
+
+                                        <div className="md:col-span-2">
+                                            <label className="label-text">Name of Online Course</label>
+                                            <input
+                                                type="text"
+                                                className="input-field"
+                                                placeholder="e.g. Joy of Computing using Python"
+                                                value={course.courseName}
+                                                onChange={(e) => updateCourse(index, 'courseName', e.target.value)}
+                                                required
+                                            />
+                                        </div>
+
                                         <div>
                                             <label className="label-text">Credits</label>
-                                            <select className="input-field" value={course.courseType} onChange={(e) => updateCourse(index, 'courseType', e.target.value)}>
+                                            <select className="input-field" value={course.courseType} onChange={(e) => updateCourse(index, 'courseType', e.target.value)} disabled={!isOtherCourse[index] && course.courseName !== ''}>
                                                 <option value="1 Credit">1 Credit</option>
                                                 <option value="2 Credits">2 Credits</option>
                                                 <option value="3 Credits">3 Credits</option>
+                                                <option value="4 Credits">4 Credits</option>
                                             </select>
                                         </div>
                                         <div>
-                                            <label className="label-text">REC Subject Code</label>
+                                            <label className="label-text">Subject Code</label>
                                             <input type="text" className="input-field" placeholder="e.g. CS19P12" value={course.recSubjectCode} onChange={(e) => updateCourse(index, 'recSubjectCode', e.target.value)} required />
                                         </div>
-                                        <div className="md:col-span-2">
-                                            <label className="label-text">Name of Online Course</label>
-                                            <input type="text" className="input-field" placeholder="e.g. Joy of Computing using Python" value={course.courseName} onChange={(e) => updateCourse(index, 'courseName', e.target.value)} required />
-                                        </div>
+
                                         <div className="md:col-span-2">
                                             <label className="label-text">Name of Organization / Institution</label>
                                             <input type="text" className="input-field" placeholder="e.g. NPTEL / Coursera" value={course.offeringUniversity} onChange={(e) => updateCourse(index, 'offeringUniversity', e.target.value)} required />
@@ -440,10 +507,24 @@ const CreditTransfer = () => {
                                             <input type="text" className="input-field" value={course.semester} onChange={(e) => updateCourse(index, 'semester', e.target.value)} required />
                                         </div>
                                         <div className="md:col-span-2">
-                                            <label className="label-text">Professional Elective to be Dropped</label>
+                                            <label className="label-text">Professional Elective to be Dropped (Auto-filled)</label>
                                             <div className="grid grid-cols-2 gap-2">
-                                                <input type="text" className="input-field" placeholder="Code (e.g. CB19P49)" value={course.droppedElectiveCode} onChange={(e) => updateCourse(index, 'droppedElectiveCode', e.target.value)} required />
-                                                <input type="text" className="input-field" placeholder="Name (e.g. Cryptography)" value={course.droppedElective} onChange={(e) => updateCourse(index, 'droppedElective', e.target.value)} required />
+                                                <input
+                                                    type="text"
+                                                    className="input-field bg-slate-50"
+                                                    placeholder="Code (e.g. CB19P49)"
+                                                    value={course.droppedElectiveCode}
+                                                    onChange={(e) => updateCourse(index, 'droppedElectiveCode', e.target.value)}
+                                                    required
+                                                />
+                                                <input
+                                                    type="text"
+                                                    className="input-field bg-slate-50"
+                                                    placeholder="Name (e.g. Cryptography)"
+                                                    value={course.droppedElective}
+                                                    onChange={(e) => updateCourse(index, 'droppedElective', e.target.value)}
+                                                    required
+                                                />
                                             </div>
                                         </div>
 

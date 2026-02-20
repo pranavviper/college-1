@@ -1,7 +1,8 @@
 import { useState, useContext, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import AuthContext from '../context/AuthContext';
 import axios from 'axios';
-import { Check, X, Eye, FileText } from 'lucide-react';
+import { Check, X, Eye, FileText, BookOpen } from 'lucide-react';
 import ApplicationDetailsModal from '../components/ApplicationDetailsModal';
 
 const FacultyDashboard = () => {
@@ -42,6 +43,10 @@ const FacultyDashboard = () => {
             <div className="flex justify-between items-center mb-8">
                 <h1 className="text-3xl font-bold">Faculty Dashboard</h1>
                 <div className="flex gap-2">
+                    <Link to="/faculty/courses" className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2">
+                        <BookOpen size={18} />
+                        Add Course
+                    </Link>
                     <select className="input-field py-1" value={filter} onChange={(e) => setFilter(e.target.value)}>
                         <option value="">All Departments</option>
                         <option value="CSE">CSE</option>

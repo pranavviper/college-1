@@ -60,6 +60,11 @@ const Login = () => {
                             required
                         />
                     </div>
+                    <div className="text-right">
+                        <Link to="/forgot-password" className="text-sm text-accent hover:underline">
+                            Forgot Password?
+                        </Link>
+                    </div>
                     <button type="submit" className="btn btn-primary w-full">
                         Login
                     </button>
