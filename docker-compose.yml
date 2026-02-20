@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "5001:5001"
+    environment:
+      - PORT=5001
+      - NODE_ENV=development
+      # Note: For production, you should pass MONGO_URI and JWT_SECRET securely (e.g., via a deployed environment manager or a .env file on the server)
+      # I am assuming your backend uses a local .env file. If you want Docker to read it automatically:
+    env_file:
+      - ./backend/.env
+    restart: always
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:80" # Maps port 5173 on your machine to port 80 inside the container (Nginx)
+    depends_on:
+      - backend
+    restart: always
